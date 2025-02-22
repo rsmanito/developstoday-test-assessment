@@ -11,12 +11,12 @@ type Cat struct {
 type CreateCatRequest struct {
 	Name              string `json:"name" validate:"required"`
 	Breed             string `json:"breed" validate:"required"`
-	YearsOfExperience int32  `json:"years_of_experience" validate:"required,gte=0"`
-	Salary            int32  `json:"salary"`
+	YearsOfExperience int32  `json:"years_of_experience" validate:"required"`
+	Salary            int32  `json:"salary" validate:"required"`
 }
 
 type UpdateCatSalaryRequest struct {
-	Salary int32 `json:"salary" validate:"required,gte=0"`
+	Salary int32 `json:"salary" validate:"required"`
 }
 
 type Target struct {
@@ -45,9 +45,9 @@ type CreateMissionRequest struct {
 }
 
 type AssignCatRequest struct {
-	Assignee int32 `json:"assignee"`
+	Assignee int32 `json:"assignee" validate:"required"`
 }
 
 type UpdateTargetNotesRequest struct {
-	Notes string `json:"notes"`
+	Notes string `json:"notes" validate:"required"`
 }

@@ -50,6 +50,11 @@ func (s Service) CreateCat(ctx context.Context, req models.CreateCatRequest) (mo
 	)
 	log.Debug("Creating a cat")
 
+	if req.YearsOfExperience < 0 {
+		log.Info("Years of experience is less than 0")
+		return models.Cat{}, models.NewError(http.StatusUnprocessableEntity, "years of experience must be greater than or equal to 0")
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -125,15 +130,18 @@ func (s Service) GetCat(ctx context.Context, id int32) (models.Cat, error) {
 }
 
 func (s Service) UpdateCatSalary(ctx context.Context, req models.UpdateCatSalaryRequest, id int32) (models.Cat, error) {
-	if req.Salary < 0 {
-		return models.Cat{}, models.NewError(http.StatusUnprocessableEntity, "salary must be greater than or equal to 0")
-	}
 	log := slog.With(
 		slog.String("op", "service.UpdateCatSalary"),
 		slog.Any("id", id),
+		slog.Any("req", req),
 	)
 
 	log.Debug("Updating cat salary")
+
+	if req.Salary < 0 {
+		log.Info("Salary is less than 0")
+		return models.Cat{}, models.NewError(http.StatusUnprocessableEntity, "salary must be greater than or equal to 0")
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
