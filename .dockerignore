@@ -1,0 +1,16 @@
+# Exclude the .git directory
+.git
+
+# Ignore Go build artifacts
+# *.sum
+# *.mod
+
+# Ignore Docker-related files
+Dockerfile
+docker-compose.yml
+
+# Ignore IDE/editor configurations
+.vscode/
+
+# Ignore user-specific files
+.air.toml
