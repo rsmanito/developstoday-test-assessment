@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,9 @@ import (
 
 func main() {
 	s := server.New()
+	slog.SetDefault(
+		slog.New(slog.NewTextHandler(os.Stdout, nil)),
+	)
 
 	app := app.New(s)
 
@@ -23,7 +27,7 @@ func main() {
 		}
 	}()
 
-	log.Default().Println("Server is running on port 3000")
+	slog.Info("Server is running", "port", cfg.HttpPort)
 
 	// Capture signals to perform a graceful shutdown
 	sigChan := make(chan os.Signal, 1)
@@ -31,14 +35,14 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		log.Default().Println("Received a startup error: ", err)
+		slog.Error("Receiver a startup error", "err", err)
 	case sig := <-sigChan:
-		log.Default().Println("Received a signal: ", sig)
+		slog.Error("Received signal", "sig", sig)
 	}
 
 	if err := app.Shutdown(); err != nil {
-		log.Default().Println("Received a shutdown error: ", err)
+		slog.Error("Received shutdown error", "err", err)
 	} else {
-		log.Default().Println("Server shutdown gracefully")
+		slog.Info("Service shutdown gracefully")
 	}
 }
