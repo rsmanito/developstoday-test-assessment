@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -57,6 +58,8 @@ func main() {
 	case sig := <-sigChan:
 		slog.Error("Received signal", "sig", sig)
 	}
+
+	storage.Close(context.Background())
 
 	if err := app.Shutdown(); err != nil {
 		slog.Error("Received shutdown error", "err", err)
