@@ -19,6 +19,8 @@ func New() *Server {
 		R: fiber.New(),
 	}
 
+	server.R.Use(LoggerMiddleware())
+
 	server.registerRoutes()
 
 	return server
