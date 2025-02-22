@@ -11,8 +11,8 @@ import (
 
 	"github.com/gofiber/fiber/v3/client"
 	"github.com/jackc/pgx/v5"
-	"github.com/rsmanito/developstoday-test-assessment/models"
-	"github.com/rsmanito/developstoday-test-assessment/storage/postgres"
+	"github.com/rsmanito/developstoday-test-assessment/internal/models"
+	"github.com/rsmanito/developstoday-test-assessment/internal/storage/postgres"
 )
 
 func (s Service) GetAllCats(ctx context.Context) ([]models.Cat, error) {

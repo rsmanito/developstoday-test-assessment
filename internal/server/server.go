@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v3"
-	"github.com/rsmanito/developstoday-test-assessment/models"
+	"github.com/rsmanito/developstoday-test-assessment/internal/models"
 )
 
 type Service interface {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/rsmanito/developstoday-test-assessment/server"
+	"github.com/rsmanito/developstoday-test-assessment/internal/server"
 )
 
 type App struct {

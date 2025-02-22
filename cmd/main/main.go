@@ -7,10 +7,10 @@ import (
 	"syscall"
 
 	"github.com/rsmanito/developstoday-test-assessment/app"
-	"github.com/rsmanito/developstoday-test-assessment/config"
-	"github.com/rsmanito/developstoday-test-assessment/server"
-	"github.com/rsmanito/developstoday-test-assessment/service"
-	"github.com/rsmanito/developstoday-test-assessment/storage"
+	"github.com/rsmanito/developstoday-test-assessment/internal/config"
+	"github.com/rsmanito/developstoday-test-assessment/internal/server"
+	"github.com/rsmanito/developstoday-test-assessment/internal/service"
+	"github.com/rsmanito/developstoday-test-assessment/internal/storage"
 )
 
 func main() {

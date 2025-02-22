@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"github.com/rsmanito/developstoday-test-assessment/config"
-	"github.com/rsmanito/developstoday-test-assessment/storage/postgres"
+	"github.com/rsmanito/developstoday-test-assessment/internal/config"
+	"github.com/rsmanito/developstoday-test-assessment/internal/storage/postgres"
 )
 
 type Storage struct {

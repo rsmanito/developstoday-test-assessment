@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/rsmanito/developstoday-test-assessment/models"
-	"github.com/rsmanito/developstoday-test-assessment/storage/postgres"
+	"github.com/rsmanito/developstoday-test-assessment/internal/models"
+	"github.com/rsmanito/developstoday-test-assessment/internal/storage/postgres"
 )
 
 func (s Service) AddTarget(ctx context.Context, missionId int32, req models.CreateTargetRequest) (models.Mission, error) {

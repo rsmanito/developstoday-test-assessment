@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/rsmanito/developstoday-test-assessment/storage/postgres"
+	"github.com/rsmanito/developstoday-test-assessment/internal/storage/postgres"
 )
 
 type Storage interface {

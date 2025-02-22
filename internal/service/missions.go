@@ -10,8 +10,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/rsmanito/developstoday-test-assessment/models"
-	"github.com/rsmanito/developstoday-test-assessment/storage/postgres"
+	"github.com/rsmanito/developstoday-test-assessment/internal/models"
+	"github.com/rsmanito/developstoday-test-assessment/internal/storage/postgres"
 )
 
 func (s Service) GetAllMissions(ctx context.Context) ([]models.Mission, error) {
