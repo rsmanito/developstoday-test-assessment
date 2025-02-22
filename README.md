@@ -6,3 +6,6 @@ A Postman collection for testing the API endpoints is available [here](https://r
 ## Environment Variables
 The service relies on the following environment variables:
 - `DB_CONN_URL`: The connection URL for the PostgreSQL database (default: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable).
+
+## Running
+You can run the application and the database using `docker-compose up`.
