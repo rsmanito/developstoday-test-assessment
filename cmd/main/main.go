@@ -22,6 +22,7 @@ func main() {
 	cfg := config.MustLoad()
 
 	storage := storage.New(cfg)
+
 	service := service.NewService(
 		storage,
 		storage,
@@ -29,7 +30,11 @@ func main() {
 		storage,
 	)
 
-	server := server.New(service)
+	server := server.New(
+		service,
+		service,
+		service,
+	)
 
 	app := app.New(server)
 
