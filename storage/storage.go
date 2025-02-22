@@ -15,6 +15,11 @@ import (
 
 type Storage struct {
 	*postgres.Queries
+	*pgx.Conn
+}
+
+func (s *Storage) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	return s.Begin(ctx)
 }
 
 //go:embed migrations/*.sql
@@ -61,7 +66,10 @@ func New(cfg *config.Config) *Storage {
 
 	queries := postgres.New(conn)
 
-	st := &Storage{queries}
+	st := &Storage{
+		queries,
+		conn,
+	}
 	st.Migrate(cfg)
 
 	return st

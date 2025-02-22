@@ -7,7 +7,63 @@ package postgres
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const assignCat = `-- name: AssignCat :one
+UPDATE missions
+SET assignee = $2
+WHERE id = $1
+RETURNING id, assignee, completed
+`
+
+type AssignCatParams struct {
+	ID       int32
+	Assignee pgtype.Int4
+}
+
+func (q *Queries) AssignCat(ctx context.Context, arg AssignCatParams) (Mission, error) {
+	row := q.db.QueryRow(ctx, assignCat, arg.ID, arg.Assignee)
+	var i Mission
+	err := row.Scan(&i.ID, &i.Assignee, &i.Completed)
+	return i, err
+}
+
+const completeMission = `-- name: CompleteMission :one
+UPDATE missions
+SET completed = true
+WHERE id = $1
+RETURNING id, assignee, completed
+`
+
+func (q *Queries) CompleteMission(ctx context.Context, id int32) (Mission, error) {
+	row := q.db.QueryRow(ctx, completeMission, id)
+	var i Mission
+	err := row.Scan(&i.ID, &i.Assignee, &i.Completed)
+	return i, err
+}
+
+const completeTarget = `-- name: CompleteTarget :one
+UPDATE targets
+SET completed = true
+WHERE id = $1
+RETURNING id, mission, name, country, notes, completed
+`
+
+func (q *Queries) CompleteTarget(ctx context.Context, id int32) (Target, error) {
+	row := q.db.QueryRow(ctx, completeTarget, id)
+	var i Target
+	err := row.Scan(
+		&i.ID,
+		&i.Mission,
+		&i.Name,
+		&i.Country,
+		&i.Notes,
+		&i.Completed,
+	)
+	return i, err
+}
 
 const createCat = `-- name: CreateCat :one
 INSERT INTO cats (
@@ -41,6 +97,52 @@ func (q *Queries) CreateCat(ctx context.Context, arg CreateCatParams) (Cat, erro
 	return i, err
 }
 
+const createMission = `-- name: CreateMission :one
+INSERT INTO missions
+DEFAULT VALUES
+RETURNING id, assignee, completed
+`
+
+func (q *Queries) CreateMission(ctx context.Context) (Mission, error) {
+	row := q.db.QueryRow(ctx, createMission)
+	var i Mission
+	err := row.Scan(&i.ID, &i.Assignee, &i.Completed)
+	return i, err
+}
+
+const createTarget = `-- name: CreateTarget :one
+INSERT INTO targets (
+  mission, name, country, notes
+) VALUES ( $1, $2, $3, $4 )
+RETURNING id, mission, name, country, notes, completed
+`
+
+type CreateTargetParams struct {
+	Mission int32
+	Name    string
+	Country string
+	Notes   string
+}
+
+func (q *Queries) CreateTarget(ctx context.Context, arg CreateTargetParams) (Target, error) {
+	row := q.db.QueryRow(ctx, createTarget,
+		arg.Mission,
+		arg.Name,
+		arg.Country,
+		arg.Notes,
+	)
+	var i Target
+	err := row.Scan(
+		&i.ID,
+		&i.Mission,
+		&i.Name,
+		&i.Country,
+		&i.Notes,
+		&i.Completed,
+	)
+	return i, err
+}
+
 const deleteCat = `-- name: DeleteCat :execrows
 DELETE 
 FROM cats
@@ -55,9 +157,37 @@ func (q *Queries) DeleteCat(ctx context.Context, id int32) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
+const deleteMission = `-- name: DeleteMission :execrows
+DELETE
+FROM missions
+WHERE id = $1
+`
+
+func (q *Queries) DeleteMission(ctx context.Context, id int32) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMission, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteTarget = `-- name: DeleteTarget :execrows
+DELETE 
+FROM targets
+WHERE id = $1
+`
+
+func (q *Queries) DeleteTarget(ctx context.Context, id int32) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteTarget, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getAllCats = `-- name: GetAllCats :many
 SELECT id, name, years_of_experience, breed, salary
-FROM CATS
+FROM cats
 `
 
 func (q *Queries) GetAllCats(ctx context.Context) ([]Cat, error) {
@@ -76,6 +206,31 @@ func (q *Queries) GetAllCats(ctx context.Context) ([]Cat, error) {
 			&i.Breed,
 			&i.Salary,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllMissions = `-- name: GetAllMissions :many
+SELECT id, assignee, completed
+FROM missions
+`
+
+func (q *Queries) GetAllMissions(ctx context.Context) ([]Mission, error) {
+	rows, err := q.db.Query(ctx, getAllMissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Mission
+	for rows.Next() {
+		var i Mission
+		if err := rows.Scan(&i.ID, &i.Assignee, &i.Completed); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -106,6 +261,110 @@ func (q *Queries) GetCat(ctx context.Context, id int32) (Cat, error) {
 	return i, err
 }
 
+const getCatMission = `-- name: GetCatMission :one
+SELECT id, assignee, completed
+FROM missions
+WHERE assignee = $1
+LIMIT 1
+`
+
+func (q *Queries) GetCatMission(ctx context.Context, assignee pgtype.Int4) (Mission, error) {
+	row := q.db.QueryRow(ctx, getCatMission, assignee)
+	var i Mission
+	err := row.Scan(&i.ID, &i.Assignee, &i.Completed)
+	return i, err
+}
+
+const getMission = `-- name: GetMission :one
+SELECT id, assignee, completed
+FROM missions
+WHERE missions.id = $1
+`
+
+func (q *Queries) GetMission(ctx context.Context, id int32) (Mission, error) {
+	row := q.db.QueryRow(ctx, getMission, id)
+	var i Mission
+	err := row.Scan(&i.ID, &i.Assignee, &i.Completed)
+	return i, err
+}
+
+const getMissionByTargetID = `-- name: GetMissionByTargetID :one
+SELECT 
+    m.id AS mission_id,
+    m.assignee,
+    m.completed
+FROM missions m
+JOIN targets t ON m.id = t.mission
+WHERE t.id = $1
+`
+
+type GetMissionByTargetIDRow struct {
+	MissionID int32
+	Assignee  pgtype.Int4
+	Completed bool
+}
+
+func (q *Queries) GetMissionByTargetID(ctx context.Context, id int32) (GetMissionByTargetIDRow, error) {
+	row := q.db.QueryRow(ctx, getMissionByTargetID, id)
+	var i GetMissionByTargetIDRow
+	err := row.Scan(&i.MissionID, &i.Assignee, &i.Completed)
+	return i, err
+}
+
+const getMissionTargets = `-- name: GetMissionTargets :many
+SELECT id, mission, name, country, notes, completed
+FROM targets
+WHERE mission = $1
+`
+
+func (q *Queries) GetMissionTargets(ctx context.Context, mission int32) ([]Target, error) {
+	rows, err := q.db.Query(ctx, getMissionTargets, mission)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Target
+	for rows.Next() {
+		var i Target
+		if err := rows.Scan(
+			&i.ID,
+			&i.Mission,
+			&i.Name,
+			&i.Country,
+			&i.Notes,
+			&i.Completed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTarget = `-- name: GetTarget :one
+SELECT id, mission, name, country, notes, completed
+FROM targets
+WHERE id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetTarget(ctx context.Context, id int32) (Target, error) {
+	row := q.db.QueryRow(ctx, getTarget, id)
+	var i Target
+	err := row.Scan(
+		&i.ID,
+		&i.Mission,
+		&i.Name,
+		&i.Country,
+		&i.Notes,
+		&i.Completed,
+	)
+	return i, err
+}
+
 const updateCatSalary = `-- name: UpdateCatSalary :one
 UPDATE cats
 SET salary = $2
@@ -127,6 +386,32 @@ func (q *Queries) UpdateCatSalary(ctx context.Context, arg UpdateCatSalaryParams
 		&i.YearsOfExperience,
 		&i.Breed,
 		&i.Salary,
+	)
+	return i, err
+}
+
+const updateTargetNotes = `-- name: UpdateTargetNotes :one
+UPDATE targets
+SET notes = $2
+WHERE id = $1
+RETURNING id, mission, name, country, notes, completed
+`
+
+type UpdateTargetNotesParams struct {
+	ID    int32
+	Notes string
+}
+
+func (q *Queries) UpdateTargetNotes(ctx context.Context, arg UpdateTargetNotesParams) (Target, error) {
+	row := q.db.QueryRow(ctx, updateTargetNotes, arg.ID, arg.Notes)
+	var i Target
+	err := row.Scan(
+		&i.ID,
+		&i.Mission,
+		&i.Name,
+		&i.Country,
+		&i.Notes,
+		&i.Completed,
 	)
 	return i, err
 }

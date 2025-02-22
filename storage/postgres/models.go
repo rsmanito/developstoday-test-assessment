@@ -4,10 +4,29 @@
 
 package postgres
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
 type Cat struct {
 	ID                int32
 	Name              string
 	YearsOfExperience int32
 	Breed             string
 	Salary            int32
+}
+
+type Mission struct {
+	ID        int32
+	Assignee  pgtype.Int4
+	Completed bool
+}
+
+type Target struct {
+	ID        int32
+	Mission   int32
+	Name      string
+	Country   string
+	Notes     string
+	Completed bool
 }
