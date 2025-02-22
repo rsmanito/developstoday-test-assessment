@@ -125,7 +125,6 @@ func (m *MockStorage) CompleteTarget(ctx context.Context, id int32) (postgres.Ta
 	return args.Get(0).(postgres.Target), args.Error(1)
 }
 
-
 //-------------------------------------
 // CATS TESTS
 //-------------------------------------

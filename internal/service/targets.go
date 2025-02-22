@@ -41,11 +41,11 @@ func (s Service) AddTarget(ctx context.Context, missionId int32, req models.Crea
 	// Get targets for mission
 	targets, err := s.st.GetMissionTargets(ctx, missionId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			if errors.Is(err, context.DeadlineExceeded) {
-				return models.Mission{}, models.ErrTimeoutExceeded
-			}
-			slog.Error("Failed to get mission", "err", err)
-			return models.Mission{}, errors.New("failed to add target")
+		if errors.Is(err, context.DeadlineExceeded) {
+			return models.Mission{}, models.ErrTimeoutExceeded
+		}
+		slog.Error("Failed to get mission", "err", err)
+		return models.Mission{}, errors.New("failed to add target")
 	}
 
 	// Check if mission already has 3 targets.
@@ -72,11 +72,11 @@ func (s Service) AddTarget(ctx context.Context, missionId int32, req models.Crea
 	// Get updated targets.
 	targets, err = s.st.GetMissionTargets(ctx, missionId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			if errors.Is(err, context.DeadlineExceeded) {
-				return models.Mission{}, models.ErrTimeoutExceeded
-			}
-			slog.Error("Failed to get targets", "err", err)
-			return models.Mission{}, errors.New("failed to add target")
+		if errors.Is(err, context.DeadlineExceeded) {
+			return models.Mission{}, models.ErrTimeoutExceeded
+		}
+		slog.Error("Failed to get targets", "err", err)
+		return models.Mission{}, errors.New("failed to add target")
 	}
 
 	// Populate mission with new targets.

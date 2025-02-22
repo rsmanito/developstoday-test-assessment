@@ -198,11 +198,11 @@ func (s Service) AssignCatToMission(ctx context.Context, mission, assignee int32
 	var lastCatMission postgres.Mission
 	lastCatMission, err = s.st.GetCatMission(ctx, pgtype.Int4{Int32: assignee, Valid: true})
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			if errors.Is(err, context.DeadlineExceeded) {
-				return models.Mission{}, models.ErrTimeoutExceeded
-			}
-			slog.Error("Failed to get current cat mission", "err", err)
-			return models.Mission{}, errors.New("failed to assign cat")
+		if errors.Is(err, context.DeadlineExceeded) {
+			return models.Mission{}, models.ErrTimeoutExceeded
+		}
+		slog.Error("Failed to get current cat mission", "err", err)
+		return models.Mission{}, errors.New("failed to assign cat")
 	}
 
 	// Check if cat has active mission.
@@ -260,7 +260,6 @@ func (s Service) AssignCatToMission(ctx context.Context, mission, assignee int32
 
 	log.Debug("Assigned to new mission")
 
-
 	return sqlcMissionToModel(newMission), nil
 }
 
@@ -280,12 +279,12 @@ func (s Service) CompleteMission(ctx context.Context, mission int32) (models.Mis
 	// Get mission targets.
 	targets, err := s.st.GetMissionTargets(ctx, mission)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			if errors.Is(err, context.DeadlineExceeded) {
-				return models.Mission{}, models.ErrTimeoutExceeded
-			}
-			if errors.Is(err, pgx.ErrNoRows) {
-				slog.Warn("Mission has no targets")
-			}
+		if errors.Is(err, context.DeadlineExceeded) {
+			return models.Mission{}, models.ErrTimeoutExceeded
+		}
+		if errors.Is(err, pgx.ErrNoRows) {
+			slog.Warn("Mission has no targets")
+		}
 		slog.Error("Failed to get mission targets", "err", err)
 		return models.Mission{}, errors.New("failed to complete mission")
 	}

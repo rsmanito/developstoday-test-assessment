@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/rsmanito/developstoday-test-assessment/app"
+	"github.com/rsmanito/developstoday-test-assessment/internal/app"
 	"github.com/rsmanito/developstoday-test-assessment/internal/config"
 	"github.com/rsmanito/developstoday-test-assessment/internal/server"
 	"github.com/rsmanito/developstoday-test-assessment/internal/service"
