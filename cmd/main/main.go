@@ -1,28 +1,34 @@
 package main
 
 import (
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/rsmanito/developstoday-test-assessment/app"
+	"github.com/rsmanito/developstoday-test-assessment/config"
 	"github.com/rsmanito/developstoday-test-assessment/server"
+	"github.com/rsmanito/developstoday-test-assessment/service"
+	"github.com/rsmanito/developstoday-test-assessment/storage"
 )
 
 func main() {
-	s := server.New()
 	slog.SetDefault(
 		slog.New(slog.NewTextHandler(os.Stdout, nil)),
 	)
 
-	app := app.New(s)
+	cfg := config.MustLoad()
+
+	storage := storage.New(cfg)
+	service := service.New(storage)
+	server := server.New(service)
+
+	app := app.New(server)
 
 	errChan := make(chan error, 1)
 	go func() {
-		// TODO: move port to config
-		if err := app.Run(":3000"); err != nil {
+		if err := app.Run(":" + cfg.HttpPort); err != nil {
 			errChan <- err
 		}
 	}()

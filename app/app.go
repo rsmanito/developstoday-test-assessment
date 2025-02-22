@@ -8,13 +8,13 @@ import (
 )
 
 type App struct {
-	httpServer *server.Server
+	httpServer server.Server
 }
 
 // New returns a new App.
-func New(s *server.Server) *App {
-	return &App{
-		httpServer: s,
+func New(server server.Server) App {
+	return App{
+		httpServer: server,
 	}
 }
 
