@@ -24,7 +24,7 @@ func (s Service) GetAllCats(ctx context.Context) ([]models.Cat, error) {
 	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 
-	cats, err := s.st.GetAllCats(ctx)
+	cats, err := s.catStorage.GetAllCats(ctx)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return make([]models.Cat, 0), models.ErrTimeoutExceeded
@@ -80,7 +80,7 @@ func (s Service) CreateCat(ctx context.Context, req models.CreateCatRequest) (mo
 	dbCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
 	defer cancel()
 
-	res, err := s.st.CreateCat(dbCtx, postgres.CreateCatParams{
+	res, err := s.catStorage.CreateCat(dbCtx, postgres.CreateCatParams{
 		Name:              req.Name,
 		Breed:             req.Breed,
 		YearsOfExperience: req.YearsOfExperience,
@@ -108,7 +108,7 @@ func (s Service) GetCat(ctx context.Context, id int32) (models.Cat, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	res, err := s.st.GetCat(ctx, id)
+	res, err := s.catStorage.GetCat(ctx, id)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Cat{}, models.ErrTimeoutExceeded
@@ -138,7 +138,7 @@ func (s Service) UpdateCatSalary(ctx context.Context, req models.UpdateCatSalary
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	res, err := s.st.UpdateCatSalary(ctx, postgres.UpdateCatSalaryParams{
+	res, err := s.catStorage.UpdateCatSalary(ctx, postgres.UpdateCatSalaryParams{
 		ID:     id,
 		Salary: req.Salary,
 	})
@@ -169,7 +169,7 @@ func (s Service) DeleteCat(ctx context.Context, id int32) error {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	rows, err := s.st.DeleteCat(ctx, id)
+	rows, err := s.catStorage.DeleteCat(ctx, id)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.ErrTimeoutExceeded

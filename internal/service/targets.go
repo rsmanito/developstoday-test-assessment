@@ -25,7 +25,7 @@ func (s Service) AddTarget(ctx context.Context, missionId int32, req models.Crea
 	defer cancel()
 
 	// Get mission.
-	m, err := s.st.GetMission(ctx, missionId)
+	m, err := s.missionStorage.GetMission(ctx, missionId)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -39,7 +39,7 @@ func (s Service) AddTarget(ctx context.Context, missionId int32, req models.Crea
 	}
 
 	// Get targets for mission
-	targets, err := s.st.GetMissionTargets(ctx, missionId)
+	targets, err := s.targetStorage.GetMissionTargets(ctx, missionId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -55,7 +55,7 @@ func (s Service) AddTarget(ctx context.Context, missionId int32, req models.Crea
 	}
 
 	// Create new target.
-	_, err = s.st.CreateTarget(ctx, postgres.CreateTargetParams{
+	_, err = s.targetStorage.CreateTarget(ctx, postgres.CreateTargetParams{
 		Mission: missionId,
 		Name:    req.Name,
 		Country: req.Country,
@@ -70,7 +70,7 @@ func (s Service) AddTarget(ctx context.Context, missionId int32, req models.Crea
 	}
 
 	// Get updated targets.
-	targets, err = s.st.GetMissionTargets(ctx, missionId)
+	targets, err = s.targetStorage.GetMissionTargets(ctx, missionId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -101,7 +101,7 @@ func (s Service) DeleteTarget(ctx context.Context, targetId int32) error {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	rows, err := s.st.DeleteTarget(ctx, targetId)
+	rows, err := s.targetStorage.DeleteTarget(ctx, targetId)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.ErrTimeoutExceeded
@@ -138,7 +138,7 @@ func (s Service) UpdateTargetNotes(ctx context.Context, targetId int32, notes st
 	}
 
 	// Get target.
-	target, err := s.st.GetTarget(ctx, targetId)
+	target, err := s.targetStorage.GetTarget(ctx, targetId)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Target{}, models.ErrTimeoutExceeded
@@ -158,7 +158,7 @@ func (s Service) UpdateTargetNotes(ctx context.Context, targetId int32, notes st
 	}
 
 	// Get mission.
-	mission, err := s.st.GetMissionByTargetID(ctx, targetId)
+	mission, err := s.missionStorage.GetMissionByTargetID(ctx, targetId)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Target{}, models.ErrTimeoutExceeded
@@ -172,7 +172,7 @@ func (s Service) UpdateTargetNotes(ctx context.Context, targetId int32, notes st
 		log.Debug("Can't change target notes of a completed mission")
 		return models.Target{}, models.NewError(http.StatusUnprocessableEntity, "Can't change target notes of a completed mission")
 	}
-	res, err := s.st.UpdateTargetNotes(ctx, postgres.UpdateTargetNotesParams{
+	res, err := s.targetStorage.UpdateTargetNotes(ctx, postgres.UpdateTargetNotesParams{
 		ID:    targetId,
 		Notes: notes,
 	})
@@ -199,7 +199,7 @@ func (s Service) CompleteTarget(ctx context.Context, targetId int32) (models.Tar
 	defer cancel()
 
 	// Get target.
-	_, err := s.st.GetTarget(ctx, targetId)
+	_, err := s.targetStorage.GetTarget(ctx, targetId)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Target{}, models.ErrTimeoutExceeded
@@ -213,7 +213,7 @@ func (s Service) CompleteTarget(ctx context.Context, targetId int32) (models.Tar
 	}
 
 	// Set target as completed.
-	target, err := s.st.CompleteTarget(ctx, targetId)
+	target, err := s.targetStorage.CompleteTarget(ctx, targetId)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Target{}, models.ErrTimeoutExceeded

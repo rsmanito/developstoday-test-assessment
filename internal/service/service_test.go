@@ -131,7 +131,7 @@ func (m *MockStorage) CompleteTarget(ctx context.Context, id int32) (postgres.Ta
 
 func TestGetAllCats(t *testing.T) {
 	mockStorage := &MockStorage{}
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("GetAllCats", mock.Anything).Return([]postgres.Cat{
 		{ID: 1, Name: "Tom", Breed: "Siamese", YearsOfExperience: 5, Salary: 5000},
@@ -147,7 +147,7 @@ func TestGetAllCats(t *testing.T) {
 
 func TestGetAllCats_StorageError(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("GetAllCats", mock.Anything).Return([]postgres.Cat{}, errors.New("database error"))
 
@@ -160,7 +160,7 @@ func TestGetAllCats_StorageError(t *testing.T) {
 
 func TestGetCat(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("GetCat", mock.Anything, int32(1)).Return(postgres.Cat{
 		ID:                1,
@@ -179,7 +179,7 @@ func TestGetCat(t *testing.T) {
 
 func TestGetCat_NotFound(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("GetCat", mock.Anything, int32(999)).Return(postgres.Cat{}, errors.New("not found"))
 
@@ -192,7 +192,7 @@ func TestGetCat_NotFound(t *testing.T) {
 
 func TestCreateCat(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("CreateCat", mock.Anything, postgres.CreateCatParams{
 		Name:              "Tom",
@@ -221,7 +221,7 @@ func TestCreateCat(t *testing.T) {
 
 func TestUpdateCatSalary(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("UpdateCatSalary", mock.Anything, postgres.UpdateCatSalaryParams{
 		ID:     1,
@@ -245,7 +245,7 @@ func TestUpdateCatSalary(t *testing.T) {
 
 func TestUpdateCatSalary_InvalidID(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("UpdateCatSalary", mock.Anything, mock.Anything).Return(postgres.Cat{}, errors.New("not found"))
 
@@ -255,7 +255,7 @@ func TestUpdateCatSalary_InvalidID(t *testing.T) {
 
 func TestUpdateCatSalary_NegativeSalary(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	_, err := service.UpdateCatSalary(context.Background(), models.UpdateCatSalaryRequest{Salary: -500}, 1)
 	assert.Error(t, err)
@@ -263,7 +263,7 @@ func TestUpdateCatSalary_NegativeSalary(t *testing.T) {
 
 func TestDeleteCat(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("DeleteCat", mock.Anything, int32(999)).Return(int64(1), nil)
 
@@ -275,7 +275,7 @@ func TestDeleteCat(t *testing.T) {
 
 func TestDeleteCat_NotFound(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("DeleteCat", mock.Anything, int32(999)).Return(int64(0), nil)
 
@@ -291,7 +291,7 @@ func TestDeleteCat_NotFound(t *testing.T) {
 
 func TestGetAllMissions_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockMissions := []postgres.Mission{
 		{ID: 1, Assignee: pgtype.Int4{Int32: 2, Valid: true}, Completed: false},
@@ -309,7 +309,7 @@ func TestGetAllMissions_Success(t *testing.T) {
 
 func TestGetAllMissions_StorageError(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("GetAllMissions", mock.Anything).Return([]postgres.Mission{}, errors.New("db error"))
 
@@ -322,7 +322,7 @@ func TestGetAllMissions_StorageError(t *testing.T) {
 
 func TestGetMission_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	missionRecord := postgres.Mission{ID: 1, Assignee: pgtype.Int4{Int32: 2, Valid: true}, Completed: false}
 	targetRecords := []postgres.Target{
@@ -343,7 +343,7 @@ func TestGetMission_Success(t *testing.T) {
 
 func TestGetMission_NotFound(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	mockStorage.On("GetMission", mock.Anything, int32(999)).Return(postgres.Mission{}, errors.New("not found"))
 
@@ -356,7 +356,7 @@ func TestGetMission_NotFound(t *testing.T) {
 
 func TestCreateMission_InvalidTargetsCount(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	// Zero targets.
 	reqZero := models.CreateMissionRequest{
@@ -380,7 +380,7 @@ func TestCreateMission_InvalidTargetsCount(t *testing.T) {
 
 func TestCreateMission_TargetNotesTooLong(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
 
 	// Target note longer than 256 characters.
 	tooLong := ""
@@ -401,7 +401,8 @@ func TestCreateMission_TargetNotesTooLong(t *testing.T) {
 
 func TestDeleteMission_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Get mission before deletion.
@@ -417,7 +418,8 @@ func TestDeleteMission_Success(t *testing.T) {
 
 func TestDeleteMission_AssignedMission(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Cannot delete a mission that has an assignee.
@@ -436,7 +438,8 @@ func TestDeleteMission_AssignedMission(t *testing.T) {
 
 func TestAddTarget_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Mission with no targets.
@@ -471,7 +474,8 @@ func TestAddTarget_Success(t *testing.T) {
 
 func TestAddTarget_TooManyTargets(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Mission with three existing targets.
@@ -495,7 +499,8 @@ func TestAddTarget_TooManyTargets(t *testing.T) {
 
 func TestDeleteTarget_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	mockStorage.On("DeleteTarget", mock.Anything, int32(100)).Return(int64(1), nil)
@@ -508,7 +513,8 @@ func TestDeleteTarget_Success(t *testing.T) {
 
 func TestDeleteTarget_NotFound(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	mockStorage.On("DeleteTarget", mock.Anything, int32(200)).Return(int64(0), nil)
@@ -521,7 +527,8 @@ func TestDeleteTarget_NotFound(t *testing.T) {
 
 func TestUpdateTargetNotes_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Pending target.
@@ -548,7 +555,8 @@ func TestUpdateTargetNotes_Success(t *testing.T) {
 
 func TestUpdateTargetNotes_Empty(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Can't update target notes to empty.
@@ -559,7 +567,8 @@ func TestUpdateTargetNotes_Empty(t *testing.T) {
 
 func TestCompleteTarget_Success(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Pending target.
@@ -579,7 +588,8 @@ func TestCompleteTarget_Success(t *testing.T) {
 
 func TestCompleteTarget_NotFound(t *testing.T) {
 	mockStorage := new(MockStorage)
-	service := New(mockStorage)
+	service := NewService(mockStorage, mockStorage, mockStorage, mockStorage)
+
 	ctx := context.Background()
 
 	// Target not found.

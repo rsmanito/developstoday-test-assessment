@@ -24,7 +24,7 @@ func (s Service) GetAllMissions(ctx context.Context) ([]models.Mission, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	res, err := s.st.GetAllMissions(ctx)
+	res, err := s.missionStorage.GetAllMissions(ctx)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return make([]models.Mission, 0), models.ErrTimeoutExceeded
@@ -63,7 +63,7 @@ func (s Service) CreateMission(ctx context.Context, req models.CreateMissionRequ
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	tx, err := s.st.Begin(ctx)
+	tx, err := s.txStorage.Begin(ctx)
 	if err != nil {
 		slog.Error("Failed to begin transaction", "err", err)
 		return models.Mission{}, err
@@ -77,7 +77,7 @@ func (s Service) CreateMission(ctx context.Context, req models.CreateMissionRequ
 	}()
 
 	// Create blank mission.
-	withTx := s.st.WithTx(tx)
+	withTx := s.txStorage.WithTx(tx)
 
 	mission, err := withTx.CreateMission(ctx)
 	if err != nil {
@@ -122,7 +122,7 @@ func (s Service) GetMission(ctx context.Context, id int32) (models.Mission, erro
 	defer cancel()
 
 	// Get mission.
-	res, err := s.st.GetMission(ctx, id)
+	res, err := s.missionStorage.GetMission(ctx, id)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -135,7 +135,7 @@ func (s Service) GetMission(ctx context.Context, id int32) (models.Mission, erro
 	}
 
 	// Get mission targets.
-	targets, err := s.st.GetMissionTargets(ctx, id)
+	targets, err := s.targetStorage.GetMissionTargets(ctx, id)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -196,7 +196,7 @@ func (s Service) AssignCatToMission(ctx context.Context, mission, assignee int32
 
 	// Get Current cat mission.
 	var lastCatMission postgres.Mission
-	lastCatMission, err = s.st.GetCatMission(ctx, pgtype.Int4{Int32: assignee, Valid: true})
+	lastCatMission, err = s.missionStorage.GetCatMission(ctx, pgtype.Int4{Int32: assignee, Valid: true})
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -211,7 +211,7 @@ func (s Service) AssignCatToMission(ctx context.Context, mission, assignee int32
 		return sqlcMissionToModel(lastCatMission), nil
 	}
 
-	tx, err := s.st.Begin(ctx)
+	tx, err := s.txStorage.Begin(ctx)
 	if err != nil {
 		slog.Error("Failed to begin transaction", "err", err)
 		return models.Mission{}, err
@@ -225,7 +225,7 @@ func (s Service) AssignCatToMission(ctx context.Context, mission, assignee int32
 		}
 	}()
 
-	withTx := s.st.WithTx(tx)
+	withTx := s.txStorage.WithTx(tx)
 
 	// Assign to new mission.
 	newMission, err := withTx.AssignCat(ctx, postgres.AssignCatParams{
@@ -277,7 +277,7 @@ func (s Service) CompleteMission(ctx context.Context, mission int32) (models.Mis
 	log.Debug("Checking mission targets")
 
 	// Get mission targets.
-	targets, err := s.st.GetMissionTargets(ctx, mission)
+	targets, err := s.targetStorage.GetMissionTargets(ctx, mission)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -298,7 +298,7 @@ func (s Service) CompleteMission(ctx context.Context, mission int32) (models.Mis
 	}
 
 	// Complete mission.
-	completed, err := s.st.CompleteMission(ctx, mission)
+	completed, err := s.missionStorage.CompleteMission(ctx, mission)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.Mission{}, models.ErrTimeoutExceeded
@@ -326,7 +326,7 @@ func (s Service) DeleteMission(ctx context.Context, id int32) error {
 	defer cancel()
 
 	// Get mission
-	mission, err := s.st.GetMission(ctx, id)
+	mission, err := s.missionStorage.GetMission(ctx, id)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.ErrTimeoutExceeded
@@ -346,7 +346,7 @@ func (s Service) DeleteMission(ctx context.Context, id int32) error {
 	}
 
 	// Delete mission
-	rows, err := s.st.DeleteMission(ctx, id)
+	rows, err := s.missionStorage.DeleteMission(ctx, id)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			return models.ErrTimeoutExceeded

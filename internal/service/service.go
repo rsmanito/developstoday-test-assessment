@@ -8,40 +8,56 @@ import (
 	"github.com/rsmanito/developstoday-test-assessment/internal/storage/postgres"
 )
 
-type Storage interface {
-	GetAllCats(context.Context) ([]postgres.Cat, error)
-	CreateCat(context.Context, postgres.CreateCatParams) (postgres.Cat, error)
-	GetCat(context.Context, int32) (postgres.Cat, error)
-	UpdateCatSalary(context.Context, postgres.UpdateCatSalaryParams) (postgres.Cat, error)
-	DeleteCat(context.Context, int32) (int64, error)
+// CatStorage controls the cat storage.
+type CatStorage interface {
+	GetAllCats(ctx context.Context) ([]postgres.Cat, error)
+	CreateCat(ctx context.Context, params postgres.CreateCatParams) (postgres.Cat, error)
+	GetCat(ctx context.Context, id int32) (postgres.Cat, error)
+	UpdateCatSalary(ctx context.Context, params postgres.UpdateCatSalaryParams) (postgres.Cat, error)
+	DeleteCat(ctx context.Context, id int32) (int64, error)
+}
 
-	CreateMission(context.Context) (postgres.Mission, error)
-	GetAllMissions(context.Context) ([]postgres.Mission, error)
-	GetMission(context.Context, int32) (postgres.Mission, error)
-	DeleteMission(context.Context, int32) (int64, error)
-	AssignCat(context.Context, postgres.AssignCatParams) (postgres.Mission, error)
-	GetCatMission(context.Context, pgtype.Int4) (postgres.Mission, error)
-	CompleteMission(context.Context, int32) (postgres.Mission, error)
-	GetMissionByTargetID(context.Context, int32) (postgres.GetMissionByTargetIDRow, error)
+// MissionStorage controls the mission storage.
+type MissionStorage interface {
+	CreateMission(ctx context.Context) (postgres.Mission, error)
+	GetAllMissions(ctx context.Context) ([]postgres.Mission, error)
+	GetMission(ctx context.Context, id int32) (postgres.Mission, error)
+	DeleteMission(ctx context.Context, id int32) (int64, error)
+	AssignCat(ctx context.Context, params postgres.AssignCatParams) (postgres.Mission, error)
+	GetCatMission(ctx context.Context, catID pgtype.Int4) (postgres.Mission, error)
+	CompleteMission(ctx context.Context, id int32) (postgres.Mission, error)
+	GetMissionByTargetID(ctx context.Context, id int32) (postgres.GetMissionByTargetIDRow, error)
+}
 
-	GetTarget(context.Context, int32) (postgres.Target, error)
-	GetMissionTargets(context.Context, int32) ([]postgres.Target, error)
-	CreateTarget(context.Context, postgres.CreateTargetParams) (postgres.Target, error)
-	DeleteTarget(context.Context, int32) (int64, error)
-	UpdateTargetNotes(context.Context, postgres.UpdateTargetNotesParams) (postgres.Target, error)
-	CompleteTarget(context.Context, int32) (postgres.Target, error)
+// TargetStorage controls the target storage.
+type TargetStorage interface {
+	GetTarget(ctx context.Context, id int32) (postgres.Target, error)
+	GetMissionTargets(ctx context.Context, missionID int32) ([]postgres.Target, error)
+	CreateTarget(ctx context.Context, params postgres.CreateTargetParams) (postgres.Target, error)
+	DeleteTarget(ctx context.Context, id int32) (int64, error)
+	UpdateTargetNotes(ctx context.Context, params postgres.UpdateTargetNotesParams) (postgres.Target, error)
+	CompleteTarget(ctx context.Context, id int32) (postgres.Target, error)
+}
 
-	WithTx(pgx.Tx) *postgres.Queries
-	Begin(context.Context) (pgx.Tx, error)
+// TransactionalStorage controls the transactional storage.
+type TransactionalStorage interface {
+	WithTx(tx pgx.Tx) *postgres.Queries
+	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
 type Service struct {
-	st Storage
+	catStorage     CatStorage
+	missionStorage MissionStorage
+	targetStorage  TargetStorage
+	txStorage      TransactionalStorage
 }
 
 // New returns a new Service.
-func New(storage Storage) Service {
+func NewService(cs CatStorage, ms MissionStorage, ts TargetStorage, txs TransactionalStorage) Service {
 	return Service{
-		st: storage,
+		catStorage:     cs,
+		missionStorage: ms,
+		targetStorage:  ts,
+		txStorage:      txs,
 	}
 }
